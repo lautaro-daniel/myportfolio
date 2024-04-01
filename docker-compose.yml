@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  eureka-server:
+    container_name: eureka-server
+    image: eureka:1
+    build: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - 'shoppingstore-network'
+  mysql-db:
+    container_name: mysql-db
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+     - MYSQL_PASSWORD=lautaro
+     - MYSQL_ROOT_PASSWORD=lautaro
+    networks:
+      - 'shoppingstore-network' 
+  products-service:
+    container_name: products-service
+    image: products:1
+    build: products-service
+    ports:
+      - "8081:8081"
+    environment:
+      - DATABASE_URL=jdbc:mysql://mysql-db:3306/productsdb
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=lautaro
+    depends_on:
+      - mysql-db
+    networks:
+      - 'shoppingstore-network' 
+  shoppingcarts-service:
+    container_name: shoppingcarts-service
+    image: cart:1
+    build: shoppingcarts-service
+    ports:
+      - "8082:8082"
+    environment:
+      - DATABASE_URL=jdbc:mysql://mysql-db:3306/cartsdb
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=lautaro
+    depends_on:
+      - mysql-db
+    networks:
+      - 'shoppingstore-network'
+  sales-service:
+    container_name: sales-service
+    image: sales:1
+    build: sales-service
+    ports:
+      - "8083:8083"
+    environment:
+      - DATABASE_URL=jdbc:mysql://mysql-db:3306/salesdb
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=lautaro
+    depends_on:
+      - mysql-db
+    networks:
+      - 'shoppingstore-network'
+  api-gateway:
+    container_name: api-gateway
+    image: api-gateway:1
+    build: api-gateway
+    ports:
+      - "443:443"
+    depends_on:
+      - eureka-server
+    networks:
+      - 'shoppingstore-network'
+
+volumes:
+  mysql-db-data:
+  
+networks:
+  shoppingstore-network:
